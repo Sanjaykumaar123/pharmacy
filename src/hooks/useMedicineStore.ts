@@ -55,7 +55,7 @@ export const useMedicineStore = create<MedicineState>((set, get) => ({
      FETCH MEDICINES (FIRESTORE + BLOCKCHAIN MERGE)
   ========================================================== */
   fetchMedicines: async () => {
-    set({ loading: true }); // 🔥 removed the "if (isInitialized) return"
+    set({ loading: true });
 
     try {
       const meds = await getMedicinesFromFirestore();
@@ -66,14 +66,19 @@ export const useMedicineStore = create<MedicineState>((set, get) => ({
 
         if (chainData && chainData.exists) {
           med.ledgerStatus = "On-Chain";
-          med.stock = chainData.stock;
-          med.price = chainData.price;
-          med.manufacturer = chainData.manufacturer;
+
+          // 🔥 We do NOT overwrite UI quantity
+          // med.stock is blockchain quantity, but UI uses med.quantity
+          med.onChain = true;
+
         } else {
           med.ledgerStatus = "Pending Confirmation";
+          med.onChain = false;
         }
 
-        med.stockStatus = getStockStatus(Number(med.stock));
+        // 🔥 FIX: Stock status must use UI quantity, NOT blockchain stock
+        med.stockStatus = getStockStatus(Number(med.quantity));
+
         merged.push(med);
       }
 
@@ -92,54 +97,54 @@ export const useMedicineStore = create<MedicineState>((set, get) => ({
      ADD MEDICINE (BLOCKCHAIN → FIRESTORE → REFRESH)
   ========================================================== */
   addMedicine: async (payload: NewMedicine) => {
-  set({ loading: true });
+    set({ loading: true });
 
-  try {
-    console.log("⛓ Sending medicine to blockchain...");
+    try {
+      console.log("⛓ Sending medicine to blockchain...");
 
-    const txHash = await addMedicineOnChain(
-      payload.name,
-      payload.batchNo,
-      payload.manufacturer,
-      Number(payload.price),
-      Number(payload.quantity),
-      Math.floor(new Date(payload.mfgDate).getTime() / 1000),
-      Math.floor(new Date(payload.expDate).getTime() / 1000)
-    );
+      const txHash = await addMedicineOnChain(
+        payload.name,
+        payload.batchNo,
+        payload.manufacturer,
+        Number(payload.price),
+        Number(payload.quantity),
+        Math.floor(new Date(payload.mfgDate).getTime() / 1000),
+        Math.floor(new Date(payload.expDate).getTime() / 1000)
+      );
 
-    console.log("✔ Blockchain TX:", txHash);
+      console.log("✔ Blockchain TX:", txHash);
 
-    // 🔥 RE-FETCH FROM BLOCKCHAIN
-    const chainData = await getMedicineOnChain(payload.batchNo);
+      // Re-fetch chain data
+      const chainData = await getMedicineOnChain(payload.batchNo);
 
-    let ledgerStatus = "Pending Confirmation";
+      let ledgerStatus = "Pending Confirmation";
+      if (chainData && chainData.exists) {
+        ledgerStatus = "On-Chain";
+      }
 
-    if (chainData && chainData.exists) {
-      ledgerStatus = "On-Chain";
+      // Save in Firestore
+      const newMed = await addMedicineToFirestore({
+        ...payload,
+        txHash,
+        ledgerStatus,
+        onChain: ledgerStatus === "On-Chain",
+      });
+
+      newMed.stockStatus = getStockStatus(Number(newMed.quantity));
+
+      // Update UI
+      set((state) => ({
+        medicines: [newMed, ...state.medicines],
+      }));
+
+      return newMed;
+    } catch (error) {
+      console.error("ADD MEDICINE ERROR:", error);
+      return null;
+    } finally {
+      set({ loading: false });
     }
-
-    // ✔ Save in Firestore
-    const newMed = await addMedicineToFirestore({
-      ...payload,
-      txHash,
-      ledgerStatus,
-      onChain: ledgerStatus === "On-Chain",
-    });
-
-    // 💾 Update UI
-    set((state) => ({
-      medicines: [newMed, ...state.medicines],
-    }));
-
-    return newMed;
-  } catch (error) {
-    console.error("ADD MEDICINE ERROR:", error);
-    return null;
-  } finally {
-    set({ loading: false });
-  }
-},
-
+  },
 
   /* =========================================================
      UPDATE MEDICINE (FIRESTORE)
@@ -154,7 +159,13 @@ export const useMedicineStore = create<MedicineState>((set, get) => ({
       set((state) => {
         const newList = state.medicines.map((m) => {
           if (m.id === id) {
-            updatedMed = { ...m, ...updatedData };
+            updatedMed = {
+              ...m,
+              ...updatedData,
+            };
+
+            updatedMed.stockStatus = getStockStatus(Number(updatedMed.quantity));
+
             return updatedMed;
           }
           return m;

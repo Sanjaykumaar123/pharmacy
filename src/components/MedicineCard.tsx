@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from 'next/link';
@@ -20,6 +19,9 @@ import { useCartStore } from '@/hooks/useCartStore';
 import { useToast } from '@/hooks/use-toast';
 import { CheckoutDialog } from './CheckoutDialog';
 
+// 🔥 IMPORT AUTH + ROUTER
+import { useAuthStore } from "@/hooks/useAuthStore";
+import { useRouter } from "next/navigation";
 
 interface MedicineCardProps {
   medicine: Medicine;
@@ -32,9 +34,20 @@ export function MedicineCard({ medicine }: MedicineCardProps) {
   
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
+  // 🔥 AUTH + ROUTER
+  const { user } = useAuthStore();
+  const router = useRouter();
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+
+    // 🔒 If not logged in → redirect to login
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
     addItem({ id: medicine.id, name: medicine.name, price: medicine.price, quantity: 1 });
     toast({
       title: "Added to Cart",
@@ -45,6 +58,13 @@ export function MedicineCard({ medicine }: MedicineCardProps) {
   const handleBuyNow = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+
+    // 🔒 If not logged in → redirect to login
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
     setIsCheckoutOpen(true);
   };
 
@@ -88,6 +108,7 @@ export function MedicineCard({ medicine }: MedicineCardProps) {
           </Button>
       </CardFooter>
     </Card>
+
     <CheckoutDialog
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
