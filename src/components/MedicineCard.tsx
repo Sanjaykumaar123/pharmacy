@@ -148,12 +148,12 @@ export function MedicineCard({ medicine }: MedicineCardProps) {
           )}
       </CardContent>
 
-      <CardFooter className="p-6 pt-0 flex flex-col sm:flex-row gap-3">
+      <CardFooter className="p-6 pt-0 flex flex-col gap-2">
           <Button 
             onClick={handleAddToCart} 
             size="lg" 
             variant="ghost" 
-            className="w-full rounded-xl font-black uppercase tracking-tighter text-[11px] h-12 border border-primary/10 hover:bg-primary/5" 
+            className="w-full rounded-xl font-black uppercase tracking-tighter text-[11px] h-11 border border-primary/10 hover:bg-primary/5" 
             disabled={isOutOfStock}
           >
               <ShoppingCart className="mr-2 h-4 w-4"/> Add to Cart
@@ -161,7 +161,7 @@ export function MedicineCard({ medicine }: MedicineCardProps) {
           <Button 
             onClick={handleBuyNow} 
             size="lg" 
-            className="w-full rounded-xl font-black uppercase tracking-tighter text-[11px] h-12 bg-foreground text-background shadow-xl hover:scale-[1.02] active:scale-95 transition-all" 
+            className="w-full rounded-xl font-black uppercase tracking-tighter text-[11px] h-11 bg-foreground text-background shadow-xl hover:scale-[1.02] active:scale-95 transition-all" 
             disabled={isOutOfStock}
           >
               Acquire
