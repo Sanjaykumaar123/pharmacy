@@ -18,72 +18,51 @@
  * - ChatOutput - The return type for the chatWithAi function.
  */
 
-import {ai} from '@/backend/genkit';
-import {z} from 'genkit';
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { Medicine } from '@/types/medicine';
 
-const ChatMessageSchema = z.object({
-  role: z.enum(['user', 'assistant']),
-  content: z.string(),
-});
-
-const ChatInputSchema = z.object({
-  history: z.array(ChatMessageSchema).describe('The chat history so far.'),
-  allMedicines: z.array(z.any()).describe('A list of all available medicines.'),
-});
-export type ChatInput = z.infer<typeof ChatInputSchema>;
-
-const ChatOutputSchema = z.object({
-  response: z.string().describe('The AI assistant\'s response.'),
-});
-export type ChatOutput = z.infer<typeof ChatOutputSchema>;
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 // This function is the main entry point called by the frontend.
-// It accepts the chat history and the current state of the medicine inventory.
-export async function chatWithAi(input: { history: z.infer<typeof ChatMessageSchema>[], allMedicines: Medicine[] }): Promise<ChatOutput> {
-  // We call the Genkit flow with the prepared data.
-  return chatFlow(input);
-}
+export async function chatWithAi(input: { history: { role: 'user' | 'assistant', content: string }[], allMedicines: Medicine[] }): Promise<{ response: string }> {
+    try {
+        const model = genAI.getGenerativeModel({
+            model: "gemini-2.0-flash"
+        });
 
-// This is the Genkit prompt definition.
-// It defines the AI's persona, its instructions, and how it should use the provided data.
-const prompt = ai.definePrompt({
-  name: 'chatPrompt',
-  input: {schema: ChatInputSchema},
-  output: {schema: ChatOutputSchema},
-  prompt: `You are a helpful and friendly pharmacy assistant chatbot.
+        const availableMedicines = input.allMedicines.map(m => (
+            `- Name: ${m.name}
+  - Manufacturer: ${m.manufacturer}
+  - Batch Number: ${m.batchNo}
+  - Expiry Date: ${m.expDate}
+  - Description: ${m.description}
+  - Stock: ${m.quantity} units`
+        )).join('\n');
+
+        const chatHistory = input.history.map(msg => (
+            `${msg.role}: ${msg.content}`
+        )).join('\n');
+
+        const systemPrompt = `You are a helpful and friendly pharmacy assistant chatbot.
 Your goal is to answer questions about the user's medicines.
 You must ONLY use the information provided in the "Available Medicines" section below.
 Do not provide any medical advice or information not present in the provided data.
 If the user asks a question you cannot answer with the provided data, politely say that you cannot answer that question.
 
 Available Medicines:
-{{#each allMedicines}}
-- Name: {{name}}
-  - Manufacturer: {{manufacturer}}
-  - Batch Number: {{batchNo}}
-  - Expiry Date: {{expDate}}
-  - Description: {{description}}
-  - Stock: {{stock.quantity}} units, status is {{stock.status}}
-{{/each}}
+${availableMedicines}
 
 Chat History:
-{{#each history}}
-{{role}}: {{content}}
-{{/each}}
-assistant: `,
-});
+${chatHistory}
+assistant: `;
 
-// This is the Genkit flow that orchestrates the AI call.
-// It takes the formatted input and passes it to the prompt.
-const chatFlow = ai.defineFlow(
-  {
-    name: 'chatFlow',
-    inputSchema: ChatInputSchema,
-    outputSchema: ChatOutputSchema,
-  },
-  async (input) => {
-    const {output} = await prompt(input);
-    return output!;
-  }
-);
+        const result = await model.generateContent(systemPrompt);
+        const response = await result.response;
+        const text = response.text();
+
+        return { response: text };
+    } catch (error: any) {
+        console.error("AI Error:", error);
+        throw error;
+    }
+}
