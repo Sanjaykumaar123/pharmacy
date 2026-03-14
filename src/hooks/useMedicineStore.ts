@@ -44,6 +44,7 @@ interface MedicineState {
   approveMedicine: (id: string) => Promise<Medicine | null>;
   anchorMedicineToBlockchain: (id: string) => Promise<boolean>;
   deleteMedicine: (id: string) => Promise<boolean>;
+  pendingAnchors: Set<string>;
 }
 
 /* ======================== ZUSTAND STORE ========================== */
@@ -53,6 +54,7 @@ export const useMedicineStore = create<MedicineState>((set, get) => ({
   isInitialized: false,
   error: undefined,
   loading: false,
+  pendingAnchors: new Set(),
 
   /* =========================================================
      FETCH MEDICINES (FIRESTORE + BLOCKCHAIN MERGE)
@@ -169,7 +171,16 @@ export const useMedicineStore = create<MedicineState>((set, get) => ({
         return true; 
     }
 
-    set({ loading: true });
+    // 🔒 CONCURRENCY LOCK: Prevent double-minting if already in progress
+    if (get().pendingAnchors.has(id)) {
+        console.warn(`⚠ Anchoring already in progress for ${id}`);
+        return false;
+    }
+
+    set((state) => ({ 
+      loading: true,
+      pendingAnchors: new Set(state.pendingAnchors).add(id)
+    }));
 
     try {
       console.log("⛓ Admin is anchoring payload to Ethereum:", med.batchNo);
@@ -218,7 +229,14 @@ export const useMedicineStore = create<MedicineState>((set, get) => ({
       }
       return false;
     } finally {
-      set({ loading: false });
+      set((state) => {
+        const nextAnchors = new Set(state.pendingAnchors);
+        nextAnchors.delete(id);
+        return { 
+          loading: false,
+          pendingAnchors: nextAnchors
+        };
+      });
     }
   },
 

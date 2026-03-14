@@ -57,6 +57,13 @@ export async function addMedicineOnChain(
   try {
     if (!window.ethereum) throw new Error("MetaMask not installed!");
 
+    // ✅ GUARD: Check if batch already exists on-chain before minting
+    const existing = await getMedicineOnChain(batch);
+    if (existing && existing.exists) {
+      console.warn("⚠ Batch already exists on-chain, skipping duplicate mint:", batch);
+      throw new Error(`Batch ${batch} is already anchored on the blockchain.`);
+    }
+
     const browser = new ethers.BrowserProvider(window.ethereum);
     const signer = await browser.getSigner();
 
