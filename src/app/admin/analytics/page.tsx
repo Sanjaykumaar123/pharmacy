@@ -227,7 +227,7 @@ const AnalyticsPage = () => {
                             <ChartContainer config={supplyChainConfig} className="h-[250px] w-full">
                                 <BarChart data={analytics.supplyChainData} barSize={36}>
                                     <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeOpacity={0.4} />
-                                    <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', fill: 'hsl(var(--muted-foreground))' }} />
+                                    <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fontSize: 10, fontWeight: 800, fill: 'hsl(var(--muted-foreground))' }} />
                                     <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 10, fontWeight: 800, fill: 'hsl(var(--muted-foreground))' }} />
                                     <ChartTooltip cursor={{ fill: 'hsl(var(--primary)/0.05)' }} content={<ChartTooltipContent hideLabel />} />
                                     <Bar dataKey="value" radius={[8, 8, 0, 0]}>

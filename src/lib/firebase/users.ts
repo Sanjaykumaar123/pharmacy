@@ -1,5 +1,5 @@
 
-"use server";
+
 
 import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -24,13 +24,18 @@ export async function getUsers(): Promise<AppUser[]> {
         const querySnapshot = await getDocs(usersCollection);
         return querySnapshot.docs.map(doc => {
             const data = doc.data();
+            // Handle Firestore Timestamp objects which can't be serialized directly
+            let createdAt = data.createdAt;
+            if (createdAt && typeof createdAt === 'object' && 'toDate' in createdAt) {
+                createdAt = createdAt.toDate().toISOString();
+            }
             return {
                 uid: doc.id,
-                email: data.email,
-                role: data.role,
-                firstName: data.firstName,
-                lastName: data.lastName,
-                createdAt: data.createdAt,
+                email: data.email || '',
+                role: data.role || 'customer',
+                firstName: data.firstName || '',
+                lastName: data.lastName || '',
+                createdAt,
             } as AppUser;
         });
     } catch (error) {
