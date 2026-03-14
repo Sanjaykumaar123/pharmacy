@@ -45,10 +45,19 @@ export default function MedicineDetailPage() {
   };
 
   const simulateMint = () => {
+    if (!medicine) return;
     setIsMinting(true);
     setTimeout(() => {
         setIsMinting(false);
         setNftMinted(true);
+        
+        // Persist to localStorage so it survives page reloads
+        const mintedCards = JSON.parse(localStorage.getItem('minted_nfts') || '[]');
+        if (!mintedCards.includes(medicine.id)) {
+            mintedCards.push(medicine.id);
+            localStorage.setItem('minted_nfts', JSON.stringify(mintedCards));
+        }
+        
         toast({
             title: "Authenticity NFT Minted",
             description: "A cryptographic proof of ownership has been anchored to the block.",
@@ -61,6 +70,14 @@ export default function MedicineDetailPage() {
       if (medicines.length > 0) {
         const found = medicines.find((m) => m.id === id);
         setMedicine(found || null);
+        
+        // Check if the user has already minted this one
+        if (found) {
+            const mintedCards = JSON.parse(localStorage.getItem('minted_nfts') || '[]');
+            if (mintedCards.includes(found.id)) {
+                setNftMinted(true);
+            }
+        }
       }
     };
 
