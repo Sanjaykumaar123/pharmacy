@@ -1,11 +1,7 @@
-
 "use client";
 
 import { create } from 'zustand';
-import { onAuthStateChanged, User } from 'firebase/auth';
-import { auth, db } from '@/lib/firebase';
-import { doc, getDoc } from 'firebase/firestore';
-import { persist, createJSONStorage } from 'zustand/middleware'
+import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Role } from '@/lib/firebase/auth';
 
 interface AuthUser {
@@ -38,34 +34,36 @@ export const useAuthStore = create<AuthState>()(
     )
 );
 
-// This function listens to Firebase's auth state changes
-// and keeps our Zustand store in sync.
-onAuthStateChanged(auth, async (firebaseUser: User | null) => {
-    if (firebaseUser) {
-        // User is signed in. Fetch their role from Firestore.
+// Only run Firebase auth listener on the client side
+if (typeof window !== 'undefined') {
+  Promise.all([
+    import('firebase/auth'),
+    import('@/lib/firebase'),
+    import('firebase/firestore'),
+  ]).then(([{ onAuthStateChanged }, { auth, db }, { doc, getDoc }]) => {
+    onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
         const userDocRef = doc(db, 'users', firebaseUser.uid);
         const userDoc = await getDoc(userDocRef);
-
         if (userDoc.exists()) {
-            const userData = userDoc.data();
-            useAuthStore.getState().setUser({
-                uid: firebaseUser.uid,
-                email: firebaseUser.email!,
-                role: userData.role || 'customer', // Default to customer
-                firstName: userData.firstName,
-                lastName: userData.lastName,
-            });
+          const userData = userDoc.data();
+          useAuthStore.getState().setUser({
+            uid: firebaseUser.uid,
+            email: firebaseUser.email!,
+            role: userData.role || 'customer',
+            firstName: userData.firstName,
+            lastName: userData.lastName,
+          });
         } else {
-             // This case can happen if user doc creation fails during signup.
-             // We'll log them in with a default role.
-             useAuthStore.getState().setUser({
-                uid: firebaseUser.uid,
-                email: firebaseUser.email!,
-                role: 'customer',
-            });
+          useAuthStore.getState().setUser({
+            uid: firebaseUser.uid,
+            email: firebaseUser.email!,
+            role: 'customer',
+          });
         }
-    } else {
-        // User is signed out.
+      } else {
         useAuthStore.getState().clearUser();
-    }
-});
+      }
+    });
+  });
+}

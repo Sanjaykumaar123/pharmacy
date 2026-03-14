@@ -94,10 +94,25 @@ export default {
             height: '0',
           },
         },
+        'scan': {
+          '0%': { top: '0%' },
+          '100%': { top: '100%' }
+        },
+        'spin-slow': {
+          'from': { transform: 'rotate(0deg)' },
+          'to': { transform: 'rotate(360deg)' }
+        },
+        'pulse-glow': {
+          '0%, 100%': { opacity: '0.5', transform: 'scale(1)' },
+          '50%': { opacity: '1', transform: 'scale(1.05)' }
+        }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        'scan-fast': 'scan 3s linear infinite',
+        'spin-slow': 'spin-slow 12s linear infinite',
+        'pulse-glow': 'pulse-glow 4s ease-in-out infinite'
       },
     },
   },

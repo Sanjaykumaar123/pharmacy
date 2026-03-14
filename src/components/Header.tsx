@@ -4,13 +4,15 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from './ui/button';
-import { LayoutDashboard, BrainCircuit, LogIn, UserPlus, LogOut, User, Factory, ShieldCheck, Loader2, Moon, Sun, ShoppingCart } from 'lucide-react';
+import { LayoutDashboard, BrainCircuit, LogIn, UserPlus, LogOut, User, Factory, ShieldCheck, Loader2, Moon, Sun, ShoppingCart, Database, Wallet } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useCartStore } from '@/hooks/useCartStore';
 import { Badge } from './ui/badge';
 import { useAuthStore } from '@/hooks/useAuthStore';
 import { signOutUser } from '@/lib/firebase/auth';
 import { useToast } from '@/hooks/use-toast';
+import { useWeb3Store } from '@/hooks/useWeb3';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 
 const PillIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -92,6 +94,72 @@ function CartButton() {
     )
 }
 
+function WalletConnectButton() {
+    const { account, isConnected, connectWallet, disconnectWallet, balance, isSepolia, networkName } = useWeb3Store();
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
+
+    if (!isClient) return null;
+
+    if (isConnected && account) {
+        return (
+            <div className="flex items-center gap-2">
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Badge 
+                                variant={isSepolia ? "outline" : "destructive"} 
+                                className={`hidden sm:flex items-center gap-1.5 px-3 py-1 border-2 transition-all duration-300 ${isSepolia ? 'border-primary/20 bg-primary/5 text-primary' : 'animate-pulse'}`}
+                            >
+                                <div className={`h-2 w-2 rounded-full ${isSepolia ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]'}`} />
+                                <span className="font-bold text-[10px] tracking-tighter uppercase whitespace-nowrap">
+                                    {isSepolia ? "Sepolia" : "Wrong Network"}
+                                </span>
+                            </Badge>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                           <p className="text-xs">{isSepolia ? "Connected to Verified Network" : `Switch to Sepolia (Connected to ${networkName || 'Unknown'})`}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+
+                <div className="flex items-center rounded-xl bg-muted/30 border-2 border-primary/10 pl-3 pr-1 py-1 group hover:border-primary/30 transition-all shadow-sm backdrop-blur-md">
+                    <div className="flex flex-col pr-3 border-r border-primary/10">
+                        <span className="text-[10px] leading-tight text-muted-foreground font-bold uppercase tracking-tight">Balance</span>
+                        <span className="text-xs font-black tracking-tighter text-foreground">
+                            {balance ? parseFloat(balance).toFixed(4) : '0.000'} ETH
+                        </span>
+                    </div>
+                    
+                    <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={disconnectWallet} 
+                        className="ml-2 h-9 px-3 flex items-center gap-2 font-mono text-xs font-bold bg-background/50 hover:bg-primary/10 text-primary border-0 rounded-lg group-hover:shadow-lg transition-all"
+                    >
+                        <Wallet className="h-3.5 w-3.5" />
+                        {account.substring(0, 4)}...{account.substring(account.length - 4)}
+                    </Button>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <Button 
+            variant="default" 
+            size="sm" 
+            onClick={connectWallet} 
+            className="rounded-xl h-10 px-6 bg-gradient-to-r from-primary to-blue-600 hover:scale-105 active:scale-95 shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all font-bold tracking-tight gap-2"
+        >
+           <Wallet className="h-4 w-4" /> Connect Wallet
+        </Button>
+    );
+}
+
 
 export default function Header() {
   const { user, loading, clearUser } = useAuthStore();
@@ -135,10 +203,22 @@ export default function Header() {
 
           <div className="flex items-center gap-2">
              <nav className="hidden md:flex items-center gap-2">
-              <Link href="/medicines" passHref>
+              <Link href="/dashboard" passHref>
                 <Button variant="ghost">
                   <LayoutDashboard className="mr-2 h-5 w-5" />
+                  Dashboard
+                </Button>
+              </Link>
+              <Link href="/medicines" passHref>
+                <Button variant="ghost">
+                  <ShoppingCart className="mr-2 h-5 w-5" />
                   Pharmacy
+                </Button>
+              </Link>
+              <Link href="/explorer" passHref>
+                <Button variant="ghost">
+                  <Database className="mr-2 h-5 w-5" />
+                  Explorer
                 </Button>
               </Link>
               <Link href="/chat" passHref>
@@ -181,6 +261,7 @@ export default function Header() {
                         </Link>
                     </>
                 )}
+                 <WalletConnectButton />
                  <CartButton />
                  <ThemeToggle />
             </div>

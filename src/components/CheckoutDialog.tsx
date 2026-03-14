@@ -4,7 +4,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import {
   Dialog,
   DialogContent,
@@ -46,6 +46,7 @@ interface CheckoutDialogProps {
 
 export function CheckoutDialog({ isOpen, onClose, items }: CheckoutDialogProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const { addOrder } = useOrderStore();
   const { clearCart } = useCartStore();
   const { toast } = useToast();
@@ -84,7 +85,7 @@ export function CheckoutDialog({ isOpen, onClose, items }: CheckoutDialogProps) 
     });
 
     // Clear the whole cart if checkout is successful from cart page
-    if(router.pathname === '/cart') {
+    if(pathname === '/cart') {
       clearCart();
     }
     

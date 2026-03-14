@@ -1,4 +1,3 @@
-
 "use client";
 
 import { create } from 'zustand';
@@ -20,15 +19,12 @@ export const useCartStore = create<CartState>()(
       items: [],
       addItem: (item) => {
         const existingItem = get().items.find((i) => i.id === item.id);
-
         if (existingItem) {
-          // If item already exists, just show a notification
           toast({
             title: "Item already in cart",
             description: `${item.name} is already in your cart. You can change the quantity there.`,
           });
         } else {
-          // Add new item
           set((state) => ({ items: [...state.items, { ...item, quantity: item.quantity || 1 }] }));
         }
       },
@@ -49,8 +45,8 @@ export const useCartStore = create<CartState>()(
       clearCart: () => set({ items: [] }),
     }),
     {
-      name: 'cart-storage', // name of the item in the storage (must be unique)
-      storage: createJSONStorage(() => sessionStorage), // (optional) by default, 'localStorage' is used
+      name: 'cart-storage',
+      storage: createJSONStorage(() => sessionStorage),
     }
   )
 );

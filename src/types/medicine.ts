@@ -33,6 +33,8 @@ export type Medicine = {
   expDate: string;
   price: number;
   onChain: boolean;
+  ledgerStatus?: string;
+  txHash?: string;
   description: string;
   supplyChainStatus: SupplyChainStatus;
   listingStatus: ListingStatus;
@@ -59,6 +61,7 @@ export type NewMedicine = Omit<Medicine, 'id' | 'onChain' | 'supplyChainStatus' 
 };
 
 // Type for updating an existing medicine, all fields are optional
-export type UpdateMedicine = Partial<Omit<Medicine, 'id' | 'stockStatus' | 'mfgDate' | 'listingStatus'>> & {
+export type UpdateMedicine = Partial<Omit<Medicine, 'id' | 'stockStatus' | 'mfgDate'>> & {
     expDate?: string;
+    mfgDate?: string;
 };

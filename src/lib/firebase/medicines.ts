@@ -8,7 +8,8 @@ import {
     serverTimestamp,
     query,
     orderBy,
-    getDoc
+    getDoc,
+    deleteDoc
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import type { Medicine, NewMedicine, UpdateMedicine } from '@/types/medicine';
@@ -95,13 +96,15 @@ export async function updateMedicineInFirestore(id: string, payload: UpdateMedic
         const originalData = originalDoc.data() as Medicine;
         
         const changes = Object.entries(payload).map(([key, value]) => {
+            if (key === 'history') return null; // Don't track history changes themselves
             if (value !== undefined && originalData[key as keyof Medicine] !== value) {
                 return `${key} changed`;
             }
             return null;
         }).filter(Boolean).join(', ');
         
-        if (changes) {
+        // If history is not already in the payload and there are changes, add an UPDATED entry
+        if (changes && !payload.history) {
             const existingHistory = originalData.history || [];
             updatedPayload.history = [
                 ...existingHistory,
@@ -122,5 +125,18 @@ export async function updateMedicineInFirestore(id: string, payload: UpdateMedic
     } catch (error) {
         console.error("Error updating medicine in Firestore: ", error);
         throw new Error("Could not update medicine.");
+    }
+}
+
+// ========================================================
+// DELETE
+// ========================================================
+export async function deleteMedicineFromFirestore(id: string): Promise<void> {
+    try {
+        const medicineDocRef = doc(db, 'medicines', id);
+        await deleteDoc(medicineDocRef);
+    } catch (error) {
+        console.error("Error deleting medicine from Firestore: ", error);
+        throw new Error("Could not delete medicine.");
     }
 }
