@@ -25,9 +25,20 @@ const getStockStatus = (quantity: number): Medicine['stockStatus'] => {
 
 const formatMedicineDoc = (doc: any): Medicine => {
     const data = doc.data();
+    
+    // Create a plain object and handle Firestore Timestamps
+    const formattedData = { ...data };
+    
+    // Recursively convert Timestamps if they exist
+    Object.keys(formattedData).forEach(key => {
+        if (formattedData[key] && typeof formattedData[key] === 'object' && 'toDate' in formattedData[key]) {
+            formattedData[key] = formattedData[key].toDate().toISOString();
+        }
+    });
+
     return {
         id: doc.id,
-        ...data,
+        ...formattedData,
         stockStatus: getStockStatus(data.quantity)
     } as Medicine;
 }

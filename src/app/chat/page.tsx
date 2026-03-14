@@ -37,10 +37,14 @@ export default function ChatPage() {
         setIsLoading(true);
 
         try {
+            // Sanitise medicines data to remove non-plain objects like Firestore Timestamps
+            // which cause serialization errors in Next.js Server Functions
+            const sanitizedMedicines = JSON.parse(JSON.stringify(medicines));
+            
             // Pass the current state of all medicines to the AI
             const assistantMessageContent = await chatWithAi({
                 history: newMessages,
-                allMedicines: medicines,
+                allMedicines: sanitizedMedicines,
             });
             const assistantMessage: Message = { role: 'assistant', content: assistantMessageContent.response };
             setMessages(prev => [...prev, assistantMessage]);
