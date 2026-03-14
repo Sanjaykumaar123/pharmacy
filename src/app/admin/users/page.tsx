@@ -200,18 +200,21 @@ export default function UserManagementPage() {
                           <DropdownMenuContent align="end" className="rounded-2xl border-primary/10">
                             <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Change Role</DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            {(Object.keys(roleConfig) as Role[]).map((role) => (
-                              <DropdownMenuItem
-                                key={role}
-                                disabled={user.role === role}
-                                onClick={() => handleRoleChange(user.uid, role)}
-                                className="font-bold text-sm rounded-xl"
-                              >
-                                <roleConfig[role].icon className={cn('mr-2 h-4 w-4', roleConfig[role].color)} />
-                                {roleConfig[role].label}
-                                {user.role === role && <span className="ml-auto text-[10px] text-muted-foreground">Current</span>}
-                              </DropdownMenuItem>
-                            ))}
+                            {(Object.keys(roleConfig) as Role[]).map((role) => {
+                              const ActionIcon = roleConfig[role].icon;
+                              return (
+                                <DropdownMenuItem
+                                  key={role}
+                                  disabled={user.role === role}
+                                  onClick={() => handleRoleChange(user.uid, role)}
+                                  className="font-bold text-sm rounded-xl"
+                                >
+                                  <ActionIcon className={cn('mr-2 h-4 w-4', roleConfig[role].color)} />
+                                  {roleConfig[role].label}
+                                  {user.role === role && <span className="ml-auto text-[10px] text-muted-foreground">Current</span>}
+                                </DropdownMenuItem>
+                              );
+                            })}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
