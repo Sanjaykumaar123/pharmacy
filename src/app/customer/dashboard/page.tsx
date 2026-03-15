@@ -1,6 +1,6 @@
 "use client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { User, Home, Pill, ScanLine, Bot, ArrowRight, ShieldCheck, Heart, Sparkles, Command } from 'lucide-react';
+import { User, Home, Pill, ScanLine, Bot, ArrowRight, ShieldCheck, Heart, Sparkles, Command, Truck } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
@@ -131,6 +131,25 @@ export default function CustomerDashboardPage() {
                 <CardFooter className="p-10 pt-0">
                     <Button variant="outline" className="w-full h-14 rounded-2xl font-black uppercase tracking-tighter border-2 border-purple-500/20 hover:border-purple-500/40 hover:bg-purple-500/5 group/btn">
                         Consult AI
+                        <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
+                    </Button>
+                </CardFooter>
+            </Card>
+          </Link>
+        </motion.div>
+        <motion.div variants={item} className="group">
+          <Link href="/customer/orders">
+            <Card className="h-full border-2 border-primary/10 bg-background/50 backdrop-blur-xl hover:border-amber-500/40 hover:shadow-2xl hover:shadow-amber-500/5 transition-all flex flex-col rounded-[2.5rem] overflow-hidden">
+                <div className="h-48 bg-gradient-to-br from-amber-500/10 to-transparent p-10 flex items-center justify-center relative overflow-hidden">
+                    <Truck className="h-20 w-20 text-amber-500 group-hover:scale-110 transition-transform duration-500" />
+                </div>
+                <CardHeader className="p-10 pt-6 flex-grow">
+                    <CardTitle className="text-2xl font-black uppercase tracking-tighter">Track Shipments</CardTitle>
+                    <CardDescription className="text-base font-medium leading-relaxed mt-2 text-muted-foreground">Monitor the real-time supply chain vectors of your cryptographically verified medical deliveries.</CardDescription>
+                </CardHeader>
+                <CardFooter className="p-10 pt-0">
+                    <Button variant="outline" className="w-full h-14 rounded-2xl font-black uppercase tracking-tighter border-2 border-amber-500/20 hover:border-amber-500/40 hover:bg-amber-500/5 group/btn">
+                        View Logisitics
                         <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
                     </Button>
                 </CardFooter>
