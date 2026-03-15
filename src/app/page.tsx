@@ -54,7 +54,7 @@ export default function Home() {
             >
               <motion.div variants={itemVariants} className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary mb-6 border border-primary/20 shadow-sm backdrop-blur-md">
                 <ShieldCheck className="w-4 h-4" />
-                <span className="text-sm font-medium tracking-wide">Hackathon Prototype: Web3 + AI Ready</span>
+                <span className="text-sm font-medium tracking-wide">Verified Medical Ledger: Web3 + AI Secured</span>
               </motion.div>
               
               <motion.h1 variants={itemVariants} className="text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight text-foreground font-headline leading-tight">
