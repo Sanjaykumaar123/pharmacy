@@ -17,6 +17,7 @@ import type {
 import {
   getMedicineOnChain,
   addMedicineOnChain,
+  updateStockOnChain,
 } from "@/blockchain/service";
 
 /* -------------------------- STOCK LOGIC -------------------------- */
@@ -241,12 +242,29 @@ export const useMedicineStore = create<MedicineState>((set, get) => ({
   },
 
   /* =========================================================
-     UPDATE MEDICINE (FIRESTORE)
+     UPDATE MEDICINE (FIRESTORE + BLOCKCHAIN IF APPLICABLE)
   ========================================================== */
   updateMedicine: async (id, payload) => {
     set({ loading: true });
 
     try {
+      // Find the current medicine to check if it's on-chain
+      const currentMed = get().medicines.find((m) => m.id === id);
+      
+      // If the medicine is on-chain, and we are updating the "quantity", we must sync to blockchain
+      let ledgerDesync = false;
+      if (currentMed && currentMed.onChain && payload.quantity !== undefined && payload.quantity !== currentMed.quantity) {
+          console.log(`⛓ Medicine ${currentMed.batchNo} is on-chain. Syncing stock update to smart contract...`);
+          try {
+              await updateStockOnChain(currentMed.batchNo, payload.quantity);
+              console.log(`✅ Smart contract stock updated successfully.`);
+          } catch (chainError) {
+              console.warn("⚠ Failed to update stock on smart contract. This may be normal if the user is a customer without a Web3 wallet.");
+              console.warn("⚠ The off-chain database will be updated, but the ledger must be reconciled by an Admin Node later.");
+              ledgerDesync = true;
+          }
+      }
+
       const updatedData = await updateMedicineInFirestore(id, payload);
       let updatedMed: Medicine | null = null;
 

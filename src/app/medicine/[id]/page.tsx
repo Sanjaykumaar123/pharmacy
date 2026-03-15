@@ -207,11 +207,27 @@ export default function MedicineDetailPage() {
               </CardContent>
 
               <CardFooter className="bg-muted/10 p-8 flex gap-4">
-                <Button onClick={handleAddToCart} size="lg" variant="outline" className="flex-1 h-14 rounded-2xl font-black uppercase tracking-tight border-2 hover:bg-primary/5 group">
+                <Button 
+                    onClick={handleAddToCart} 
+                    size="lg" 
+                    variant="outline" 
+                    disabled={!isVerified} 
+                    className="flex-1 h-14 rounded-2xl font-black uppercase tracking-tight border-2 hover:bg-primary/5 group"
+                >
                    <ShoppingCart className="mr-2 h-5 w-5 group-hover:-translate-y-1 transition-transform" /> Add to Cart
                 </Button>
-                <Button onClick={handleBuyNow} size="lg" className="flex-[1.5] h-14 rounded-2xl font-black uppercase tracking-tight bg-gradient-to-r from-primary to-blue-600 shadow-2xl shadow-primary/20 hover:shadow-primary/40 active:scale-95 transition-all">
-                   Acquire via Web3
+                <Button 
+                    onClick={handleBuyNow} 
+                    size="lg" 
+                    disabled={!isVerified} 
+                    className={cn(
+                        "flex-[1.5] h-14 rounded-2xl font-black uppercase tracking-tight transition-all",
+                        isVerified 
+                            ? "bg-gradient-to-r from-primary to-blue-600 shadow-2xl shadow-primary/20 hover:shadow-primary/40 active:scale-95"
+                            : "bg-muted text-muted-foreground opacity-50 border-2 border-dashed border-muted-foreground"
+                    )}
+                >
+                   {isVerified ? "Acquire via Web3" : "Verification Required"}
                 </Button>
               </CardFooter>
             </Card>

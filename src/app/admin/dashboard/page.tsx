@@ -21,6 +21,9 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { useMedicineStore } from '@/hooks/useMedicineStore';
+import { useOrderStore } from '@/hooks/useOrderStore';
+import { useEffect, useState } from 'react';
 
 export default function AdminDashboardPage() {
   const container = {
@@ -37,6 +40,19 @@ export default function AdminDashboardPage() {
     hidden: { y: 20, opacity: 0 },
     show: { y: 0, opacity: 1 }
   };
+
+  const { medicines } = useMedicineStore();
+  const { orders } = useOrderStore();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  const pendingAnchors = medicines.filter(m => !m.onChain && m.listingStatus === 'Approved').length;
+  const activeOrders = orders.filter(o => o.status !== 'Delivered' && o.status !== 'Cancelled').length;
+
+  if (!isClient) return null;
 
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-12 max-w-7xl space-y-12">
@@ -73,8 +89,8 @@ export default function AdminDashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {[
               { label: "Network Integrity", val: "99.9%", icon: ShieldCheck, color: "text-green-500" },
-              { label: "Active Nodes", val: "128", icon: Globe, color: "text-blue-500" },
-              { label: "Pending Anchors", val: "04", icon: Zap, color: "text-amber-500" },
+              { label: "Active Nodes", val: activeOrders.toString(), icon: Globe, color: "text-blue-500" },
+              { label: "Pending Anchors", val: pendingAnchors.toString().padStart(2, '0'), icon: Zap, color: "text-amber-500" },
               { label: "Sync Latency", val: "24ms", icon: Activity, color: "text-primary" }
           ].map((stat, i) => (
               <motion.div 

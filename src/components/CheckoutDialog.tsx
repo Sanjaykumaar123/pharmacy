@@ -26,6 +26,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2 } from 'lucide-react';
 import { useOrderStore } from '@/hooks/useOrderStore';
+import { useMedicineStore } from '@/hooks/useMedicineStore';
 import { useCartStore } from '@/hooks/useCartStore';
 import { useToast } from '@/hooks/use-toast';
 import type { CartItem } from '@/types/medicine';
@@ -49,6 +50,7 @@ export function CheckoutDialog({ isOpen, onClose, items }: CheckoutDialogProps) 
   const pathname = usePathname();
   const { addOrder } = useOrderStore();
   const { clearCart } = useCartStore();
+  const { updateMedicine, medicines } = useMedicineStore();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
@@ -78,6 +80,15 @@ export function CheckoutDialog({ isOpen, onClose, items }: CheckoutDialogProps) 
       shippingAddress: values.shippingAddress,
       mobileNumber: values.mobileNumber,
     });
+
+    // BUSINESS LOGIC: Decrement global inventory for each purchased item
+    for (const item of items) {
+        const med = medicines.find((m) => m.id === item.id);
+        if (med) {
+            const newQuantity = Math.max(0, Number(med.quantity) - Number(item.quantity));
+            await updateMedicine(med.id, { quantity: newQuantity });
+        }
+    }
 
     toast({
       title: "Order Placed!",
