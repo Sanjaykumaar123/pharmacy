@@ -37,7 +37,7 @@ export const useOrderStore = create<OrderState>()(
     }),
     {
       name: 'order-storage',
-      storage: createJSONStorage(() => sessionStorage),
+      storage: createJSONStorage(() => localStorage),
     }
   )
 );
